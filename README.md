@@ -16,6 +16,8 @@
 - 彩色／灰階／文件黑白、灰度、亮度、對比、飽和度、色溫、降噪、銳化、白紙去灰及重設。
 - 單頁 JPG；多頁 PDF、檔名與 150 / 300 / 600 DPI。
 - OpenCV 載入、處理中與錯誤狀態；OpenCV `Mat` 統一以 `try/finally` 釋放。
+- 效能保護：互動預覽限制為桌面 960px／手機 640px，拖角採 640px／480px 快速預覽；pointermove 以 RAF 合併、拉桿以 200ms debounce 合併，並使用 generation gate 與透視／增強快取避免過期或重複運算。
+- JPG／PDF 匯出會重新使用原始來源解析度處理，不會直接輸出低解析度互動預覽。
 - 響應式繁體中文桌面／手機介面。
 
 ## 邊界安全限制
@@ -45,7 +47,7 @@ npm run serve
 npm test
 ```
 
-使用 Node 內建 `node:test`，不需安裝測試依賴。涵蓋點排序、面積、四邊形 metrics／score、低信心與邊界接觸規則、輸出尺寸與縮放。實際 RED / GREEN 命令與輸出摘要見 [`TDD_LOG.md`](TDD_LOG.md)。
+使用 Node 內建 `node:test`，不需安裝測試依賴。21 項測試涵蓋點排序、面積、四邊形 metrics／score、低信心與邊界接觸規則、輸出尺寸與縮放、預覽尺寸、RAF／debounce 合併、generation gate、快取、原始解析度匯出與 LAB 遮罩向量化。實際 RED / GREEN 命令與輸出摘要見 [`TDD_LOG.md`](TDD_LOG.md)。
 
 ## 靜態部署
 

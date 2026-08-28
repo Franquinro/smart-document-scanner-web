@@ -68,21 +68,27 @@ export function detectDocument(sourceCanvas) {
     const dilateKernel=cv.getStructuringElement(cv.MORPH_RECT,new cv.Size(3,3)); owned.push(dilateKernel);
     cv.dilate(combinedEdge,combinedEdge,dilateKernel);
 
-    const labMask=new cv.Mat(), cleanedLab=new cv.Mat(), bgDiffMask=cv.Mat.zeros(lab.rows,lab.cols,cv.CV_8UC1);
+    const labMask=new cv.Mat(), cleanedLab=new cv.Mat(), bgDiffMask=new cv.Mat();
     const lowerLab=new cv.Mat(lab.rows,lab.cols,lab.type(),[115,105,105,0]);
     const upperLab=new cv.Mat(lab.rows,lab.cols,lab.type(),[255,151,151,255]);
     owned.push(labMask,cleanedLab,bgDiffMask,lowerLab,upperLab);
     cv.inRange(lab,lowerLab,upperLab,labMask);
-    // Complement the neutral/light-paper mask with LAB distance from the sampled image border.
+    // Sample only the border in JS; classify the full LAB image with vectorized OpenCV operations.
     const borderSamples=[[],[],[]], step=Math.max(1,Math.round(Math.min(lab.cols,lab.rows)/100));
     for(let x=0;x<lab.cols;x+=step) for(const y of [0,lab.rows-1]) {const px=lab.ucharPtr(y,x);for(let c=0;c<3;c++)borderSamples[c].push(px[c]);}
     for(let y=step;y<lab.rows-1;y+=step) for(const x of [0,lab.cols-1]) {const px=lab.ucharPtr(y,x);for(let c=0;c<3;c++)borderSamples[c].push(px[c]);}
     const median=values=>values.sort((a,b)=>a-b)[Math.floor(values.length/2)]||0;
     const bg=borderSamples.map(median);
-    for(let y=0;y<lab.rows;y++) for(let x=0;x<lab.cols;x++) {
-      const px=lab.ucharPtr(y,x), d=Math.hypot((px[0]-bg[0])*.55,px[1]-bg[1],px[2]-bg[2]);
-      if(px[0]>92 && d>15) bgDiffMask.ucharPtr(y,x)[0]=255;
-    }
+    const nearBg=new cv.Mat(), lightMask=new cv.Mat();
+    const lowerBg=new cv.Mat(lab.rows,lab.cols,lab.type(),[Math.max(0,bg[0]-27),Math.max(0,bg[1]-15),Math.max(0,bg[2]-15),0]);
+    const upperBg=new cv.Mat(lab.rows,lab.cols,lab.type(),[Math.min(255,bg[0]+27),Math.min(255,bg[1]+15),Math.min(255,bg[2]+15),255]);
+    const lowerLight=new cv.Mat(lab.rows,lab.cols,lab.type(),[93,0,0,0]);
+    const upperLight=new cv.Mat(lab.rows,lab.cols,lab.type(),[255,255,255,255]);
+    owned.push(nearBg,lightMask,lowerBg,upperBg,lowerLight,upperLight);
+    cv.inRange(lab,lowerBg,upperBg,nearBg);
+    cv.bitwise_not(nearBg,bgDiffMask);
+    cv.inRange(lab,lowerLight,upperLight,lightMask);
+    cv.bitwise_and(bgDiffMask,lightMask,bgDiffMask);
     cv.bitwise_or(labMask,bgDiffMask,labMask);
     const closeKernel=cv.getStructuringElement(cv.MORPH_ELLIPSE,new cv.Size(13,13)); owned.push(closeKernel);
     cv.morphologyEx(labMask,cleanedLab,cv.MORPH_CLOSE,closeKernel);
