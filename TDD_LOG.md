@@ -70,3 +70,18 @@
 - 圖片 1：`lab-paper-mask`、信心 75%、正確標示需手動調整。
 - 圖片 2：`lab-paper-mask`、信心 98%、正確標示需手動調整；拖角後切換為手動幾何。
 - 操作完成後 `busy.hidden === true`，錯誤提示為空，OpenCV 顯示「OpenCV 已就緒」。
+
+## 三頁 PDF 反推角點回歸 RED → GREEN — 2026-08-31
+
+使用者提供三張原圖與其三頁 PDF 成品。PDF 無文字層，因此將每頁轉為影像，以 SIFT 特徵與 RANSAC homography 從成品頁面四角反推原圖正確 TL/TR/BR/BL。三頁分別取得 1504／138／1562 個 RANSAC inliers，中位重投影誤差 0.4135／0.4727／0.3807 px，足以作為本機真實回歸基準；原圖、PDF、渲染頁及診斷輸出全部置於被忽略的 `tests/fixtures/real/`。
+
+根因不是四邊形評分本身，而是先前把「中性亮紙遮罩」與「背景色差遮罩」直接 OR 後才做 closing。第二張紅桌照片的亮背景雜點因此與紙張相連，錯把左下角拉到影像邊界；只調大 opening 核心會讓第三張幾乎滿版、邊緣破損的文件完全失去候選。
+
+RED／GREEN 實際結果：
+
+- 初始真實瀏覽器回歸：第 1／2／3 頁平均角點誤差為 0.74／24.67／2.23 px；第 2 頁失敗。
+- `npm test` 首次新增形態學策略測試：exit code 1，`geometry.paperMaskMorphology is not a function`；tests 22、pass 21、fail 1。
+- 兩輪單純放大 opening 的真實瀏覽器測試仍失敗，並確認過度 opening 會使第 3 頁退回 `fallback-inset`，因此停止門檻微調並改為分離遮罩架構。
+- 分離 LAB 中性紙張與背景色差候選後，真實瀏覽器 GREEN：第 1／2／3 頁平均角點誤差 1.41／2.01／2.23 px，全部低於 5 px 門檻。
+- 新版三頁輸出尺寸為 1107×1404、1049×1375、1257×1302；視覺檢查確認紙邊與 PDF 成品一致，沒有把內部表格黑框誤作紙張外框。
+- 完整 `npm test`：tests 22、pass 22、fail 0；`scanner.js`、`geometry.js` 語法檢查通過；實際瀏覽器 console 0 error。

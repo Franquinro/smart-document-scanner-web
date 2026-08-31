@@ -1,6 +1,19 @@
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
+export function paperMaskMorphology(width, height) {
+  const shortSide = Math.max(1, Math.min(Number(width), Number(height)));
+  const odd = value => {
+    const rounded = Math.max(1, Math.round(value));
+    return rounded % 2 ? rounded : rounded + 1;
+  };
+  return {
+    neutralOpen: shortSide < 480 ? 3 : odd(shortSide / 120),
+    differenceOpen: shortSide < 480 ? 3 : odd(shortSide / 80),
+    close: odd(Math.max(5, shortSide / 75)),
+  };
+}
+
 export function orderPoints(points) {
   if (!Array.isArray(points) || points.length !== 4) throw new TypeError('Exactly four points are required');
   const normalized = points.map(({x, y}) => ({x: Number(x), y: Number(y)}));

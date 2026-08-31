@@ -1,4 +1,4 @@
-import { orderPoints, quadMetrics, scoreQuad, evaluateDetection, computeOutputSize, chooseDetectionCandidate } from './geometry.js';
+import { orderPoints, quadMetrics, scoreQuad, evaluateDetection, computeOutputSize, chooseDetectionCandidate, paperMaskMorphology } from './geometry.js';
 
 const safeDelete = value => { try { value?.delete?.(); } catch (_) {} };
 const cvReady = () => globalThis.cv && typeof cv.Mat === 'function';
@@ -68,10 +68,10 @@ export function detectDocument(sourceCanvas) {
     const dilateKernel=cv.getStructuringElement(cv.MORPH_RECT,new cv.Size(3,3)); owned.push(dilateKernel);
     cv.dilate(combinedEdge,combinedEdge,dilateKernel);
 
-    const labMask=new cv.Mat(), cleanedLab=new cv.Mat(), bgDiffMask=new cv.Mat();
+    const labMask=new cv.Mat(), neutralOpened=new cv.Mat(), neutralCleaned=new cv.Mat(), bgDiffMask=new cv.Mat(), differenceOpened=new cv.Mat(), differenceCleaned=new cv.Mat();
     const lowerLab=new cv.Mat(lab.rows,lab.cols,lab.type(),[115,105,105,0]);
     const upperLab=new cv.Mat(lab.rows,lab.cols,lab.type(),[255,151,151,255]);
-    owned.push(labMask,cleanedLab,bgDiffMask,lowerLab,upperLab);
+    owned.push(labMask,neutralOpened,neutralCleaned,bgDiffMask,differenceOpened,differenceCleaned,lowerLab,upperLab);
     cv.inRange(lab,lowerLab,upperLab,labMask);
     // Sample only the border in JS; classify the full LAB image with vectorized OpenCV operations.
     const borderSamples=[[],[],[]], step=Math.max(1,Math.round(Math.min(lab.cols,lab.rows)/100));
@@ -89,12 +89,21 @@ export function detectDocument(sourceCanvas) {
     cv.bitwise_not(nearBg,bgDiffMask);
     cv.inRange(lab,lowerLight,upperLight,lightMask);
     cv.bitwise_and(bgDiffMask,lightMask,bgDiffMask);
-    cv.bitwise_or(labMask,bgDiffMask,labMask);
-    const closeKernel=cv.getStructuringElement(cv.MORPH_ELLIPSE,new cv.Size(13,13)); owned.push(closeKernel);
-    cv.morphologyEx(labMask,cleanedLab,cv.MORPH_CLOSE,closeKernel);
+    const morphology=paperMaskMorphology(work.cols,work.rows);
+    const neutralOpenKernel=cv.getStructuringElement(cv.MORPH_ELLIPSE,new cv.Size(morphology.neutralOpen,morphology.neutralOpen));
+    const differenceOpenKernel=cv.getStructuringElement(cv.MORPH_ELLIPSE,new cv.Size(morphology.differenceOpen,morphology.differenceOpen));
+    const closeKernel=cv.getStructuringElement(cv.MORPH_ELLIPSE,new cv.Size(morphology.close,morphology.close));
+    owned.push(neutralOpenKernel,differenceOpenKernel,closeKernel);
+    // Keep neutral-paper and background-difference evidence separate: OR-ing them lets
+    // bright table speckles bridge the paper contour to the image boundary.
+    cv.morphologyEx(labMask,neutralOpened,cv.MORPH_OPEN,neutralOpenKernel);
+    cv.morphologyEx(neutralOpened,neutralCleaned,cv.MORPH_CLOSE,closeKernel);
+    cv.morphologyEx(bgDiffMask,differenceOpened,cv.MORPH_OPEN,differenceOpenKernel);
+    cv.morphologyEx(differenceOpened,differenceCleaned,cv.MORPH_CLOSE,closeKernel);
 
     const candidates=[];
-    contoursToCandidates(cleanedLab,combinedEdge,'lab-paper-mask',work.cols,work.rows,candidates);
+    contoursToCandidates(neutralCleaned,combinedEdge,'lab-neutral-paper',work.cols,work.rows,candidates);
+    contoursToCandidates(differenceCleaned,combinedEdge,'lab-bg-difference',work.cols,work.rows,candidates);
     contoursToCandidates(edge1,combinedEdge,'canny-weak-28-95',work.cols,work.rows,candidates);
     contoursToCandidates(edge2,combinedEdge,'canny-weak-55-165',work.cols,work.rows,candidates);
     if(!candidates.length) {

@@ -8,6 +8,7 @@
 - OpenCV.js 多候選文件偵測：
   - 固定亮／低色偏紙張遮罩；
   - 影像邊框 LAB 中位數取樣與背景色差遮罩；
+  - 兩種 LAB 證據分開做 opening／closing 和輪廓候選，避免亮桌面雜點把紙張黏到影像邊界；
   - 兩組弱 Canny（28/95、55/165）；
   - 每種訊號取多個輪廓，以五種 `epsilon` 近似四邊形；
   - 依覆蓋率、凸性、角度、對邊一致性、角點分離、邊緣支援與邊界接觸評分。
@@ -47,7 +48,7 @@ npm run serve
 npm test
 ```
 
-使用 Node 內建 `node:test`，不需安裝測試依賴。21 項測試涵蓋點排序、面積、四邊形 metrics／score、低信心與邊界接觸規則、輸出尺寸與縮放、預覽尺寸、RAF／debounce 合併、generation gate、快取、原始解析度匯出與 LAB 遮罩向量化。實際 RED / GREEN 命令與輸出摘要見 [`TDD_LOG.md`](TDD_LOG.md)。
+使用 Node 內建 `node:test`，不需安裝測試依賴。22 項測試涵蓋點排序、面積、四邊形 metrics／score、低信心與邊界接觸規則、輸出尺寸與縮放、紙張遮罩形態學、預覽尺寸、RAF／debounce 合併、generation gate、快取、原始解析度匯出與 LAB 遮罩向量化。實際 RED / GREEN 命令與輸出摘要見 [`TDD_LOG.md`](TDD_LOG.md)。
 
 ## 靜態部署
 

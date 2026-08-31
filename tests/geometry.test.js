@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import * as geometry from '../geometry.js';
 import {
   orderPoints,
   polygonArea,
@@ -98,4 +99,9 @@ test('computeOutputSize uses longest opposite edges and clamps minimum', () => {
 
 test('computeOutputSize scales dimensions down to max without distortion', () => {
   assert.deepEqual(computeOutputSize([{x:0,y:0},{x:4000,y:0},{x:4000,y:2000},{x:0,y:2000}], {max:1000}), {width:1000,height:500});
+});
+
+test('paper mask morphology removes isolated background speckles before closing paper gaps', () => {
+  assert.deepEqual(geometry.paperMaskMorphology(960, 1280), {neutralOpen:9, differenceOpen:13, close:13});
+  assert.deepEqual(geometry.paperMaskMorphology(320, 240), {neutralOpen:3, differenceOpen:3, close:5});
 });
