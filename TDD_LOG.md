@@ -85,3 +85,25 @@ RED／GREEN 實際結果：
 - 分離 LAB 中性紙張與背景色差候選後，真實瀏覽器 GREEN：第 1／2／3 頁平均角點誤差 1.41／2.01／2.23 px，全部低於 5 px 門檻。
 - 新版三頁輸出尺寸為 1107×1404、1049×1375、1257×1302；視覺檢查確認紙邊與 PDF 成品一致，沒有把內部表格黑框誤作紙張外框。
 - 完整 `npm test`：tests 22、pass 22、fail 0；`scanner.js`、`geometry.js` 語法檢查通過；實際瀏覽器 console 0 error。
+
+## 手機連續拍攝與預覽導覽 RED → GREEN — 2026-09-01
+
+- 先建立 `tests/mobile-workflow.test.js`，執行 `node --test tests/mobile-workflow.test.js` 得到預期 RED：`ERR_MODULE_NOT_FOUND`，因為 `mobile-workflow.js` 尚不存在；tests 1、pass 0、fail 1。
+- 最小實作檔名清理、連續拍攝流水號、手機匯入後是否開啟編輯器，以及 File System Access API 選擇邏輯後，同一命令 GREEN：tests 4、pass 4、fail 0。
+- 完整 `npm test`：tests 26、pass 26、fail 0；`app.js`、`mobile-workflow.js` 語法檢查與 `git diff --check` 通過。
+- 真實瀏覽器以 390px iframe 驗證：加入照片後顯示處理完成的 JPEG data URL 預覽、編輯器維持關閉；點預覽後才顯示四角編輯器、檔名與偵測信心。鉛筆改名同步更新標題與列表，非法 `:` 轉為 `_`。
+- 以模擬 `showSaveFilePicker()` 驗證匯出：建議檔名 `測試_文件.pdf`，實際寫入一次 `application/pdf` Blob 並關閉 writable；無錯誤且 busy 正常復原。
+
+## 中斷後可靠性修正 RED → GREEN — 2026-09-01
+
+- 先新增匯出頁序列一致性與 `FileSystemWritableFileStream` 成功／失敗清理測試，再執行 `node --test tests/mobile-workflow.test.js`。結果為預期 RED（exit code 1）：`mobile-workflow.js` 尚未匯出 `isPageSequenceCurrent`，tests 1、pass 0、fail 1；duration 118.1591 ms。
+- 最小實作後，同一命令 GREEN（exit code 0）：tests 8、pass 8、fail 0；duration 120.2989 ms。成功路徑依序 `write`、`close`；`write` 或 `close` 失敗時會等待 `abort`、不重試 `close`，且保留原始錯誤。
+- `app.js` 以頁面 ID 順序與不可變的角點／設定快照產生 PDF；匯出期間停用或攔截加入、選頁、排序、刪除、旋轉、拖角、改名及影像設定，並取消過期選頁／預覽 generation。
+- 相機關閉改為先對仍開啟的 `<dialog>` 呼叫 `close()`，再停止媒體 tracks；單張拍攝只有在 `addFiles()` 回報成功加入後才增加流水號。逐檔匯入個別清理由批次內層 `try/catch` 處理，失敗檔案的 object URL 與 bitmap 會釋放，其餘檔案繼續處理。
+- 最終完整 `npm test`：exit code 0；tests 30、pass 30、fail 0；最後一次重跑 duration 256.686 ms。`app.js`、`scanner.js`、`geometry.js`、`performance.js`、`mobile-workflow.js` 的 `node --check` 全部通過；staged 與 unstaged 的 `git diff --check` 均無 whitespace error。
+
+## 相機開啟取消 generation 競態 RED → GREEN — 2026-09-01
+
+- RED 命令：`node --test tests/mobile-workflow.test.js`。結果為預期失敗（exit code 1）：`SyntaxError: The requested module '../mobile-workflow.js' does not provide an export named 'createCameraOpenGate'`；tests 1、pass 0、fail 1；duration 102.2107 ms。
+- GREEN 命令：`node --test tests/mobile-workflow.test.js`。結果成功（exit code 0）：tests 9、pass 9、fail 0；duration 185.631 ms。新增測試確認新 generation 會使舊 token 失效、`cancel()` 會使 pending token 失效，且 exporting 時不得採用已取得的 stream。
+- 最終 GREEN：`npm test` 成功（exit code 0）：tests 31、pass 31、fail 0；duration 319.3681 ms。`node --check app.js` 與 `node --check mobile-workflow.js` 均為 exit code 0。

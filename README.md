@@ -20,6 +20,9 @@
 - 效能保護：互動預覽限制為桌面 960px／手機 640px，拖角採 640px／480px 快速預覽；pointermove 以 RAF 合併、拉桿以 200ms debounce 合併，並使用 generation gate 與透視／增強快取避免過期或重複運算。
 - JPG／PDF 匯出會重新使用原始來源解析度處理，不會直接輸出低解析度互動預覽。
 - 響應式繁體中文桌面／手機介面。
+- 手機可在 HTTPS 網站內開啟後鏡頭連續拍攝；每張照片會立即自動偵測、透視與增強，先顯示完成預覽，點預覽圖才開啟四角編輯器。不支援 `getUserMedia()` 時改用系統相機選取器。
+- 編輯器頂部顯示目前頁面檔名，鉛筆按鈕可重新命名；非法檔名字元會自動替換。
+- Chromium 類瀏覽器會在匯出 PDF 前開啟原生儲存位置選擇器；不支援 File System Access API 的 iOS Safari、Firefox 等瀏覽器，保留標準下載／分享面板。
 
 ## 邊界安全限制
 
@@ -48,7 +51,7 @@ npm run serve
 npm test
 ```
 
-使用 Node 內建 `node:test`，不需安裝測試依賴。22 項測試涵蓋點排序、面積、四邊形 metrics／score、低信心與邊界接觸規則、輸出尺寸與縮放、紙張遮罩形態學、預覽尺寸、RAF／debounce 合併、generation gate、快取、原始解析度匯出與 LAB 遮罩向量化。實際 RED / GREEN 命令與輸出摘要見 [`TDD_LOG.md`](TDD_LOG.md)。
+使用 Node 內建 `node:test`，不需安裝測試依賴。31 項測試涵蓋點排序、面積、四邊形 metrics／score、低信心與邊界接觸規則、輸出尺寸與縮放、紙張遮罩形態學、預覽尺寸、RAF／debounce 合併、generation gate、快取、原始解析度匯出、LAB 遮罩向量化、手機預覽導覽、連續拍攝檔名、相機開啟取消 gate、PDF 儲存方式選擇、匯出頁序列鎖定，以及 writable 成功／失敗清理。實際 RED / GREEN 命令與輸出摘要見 [`TDD_LOG.md`](TDD_LOG.md)。
 
 ## 靜態部署
 
@@ -63,6 +66,7 @@ npm test
 - 傳統輪廓偵測可能受反光、紙張與背景同色、遮擋或紙角出框影響；介面會在不可靠時要求手動調整。
 - 600 DPI 多頁輸出需要較多瀏覽器記憶體，行動裝置建議使用 150 或 300 DPI。
 - PDF 是影像型 PDF，未包含 OCR 文字層。
+- 純網頁無法強制所有瀏覽器開放任意資料夾。支援 `showSaveFilePicker()` 的安全來源可選擇檔名與位置；其他瀏覽器由作業系統的下載或分享機制決定位置。
 
 ## 授權
 

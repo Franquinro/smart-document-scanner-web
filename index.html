@@ -3,13 +3,15 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="所有影像都在瀏覽器本機處理的智慧文件掃描器">
-  <title>頁淨・智慧文件掃描器</title><link rel="stylesheet" href="styles.css?v=2">
+  <title>頁淨・智慧文件掃描器</title><link rel="stylesheet" href="styles.css?v=4">
 </head>
 <body>
 <header><div><span class="brand-mark">▱</span><b>頁淨</b><small>智慧文件掃描器</small></div><div id="cvStatus" class="status waiting"><i></i> OpenCV 載入中</div></header>
 <main>
   <aside class="pages-panel">
     <div class="panel-title"><div><b>頁面</b><span id="pageCount">0 頁</span></div><label class="icon-btn" title="加入照片">＋<input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden></label></div>
+    <button id="continuousCapture" class="camera-btn" type="button">📷 連續拍攝</button>
+    <input id="cameraFallback" type="file" accept="image/*" capture="environment" hidden>
     <section id="dropZone" class="drop-zone"><span>⇧</span><b>拖放照片到這裡</b><small>或點擊選取 JPG、PNG、WebP</small></section>
     <ol id="pageList" aria-label="掃描頁面"></ol>
     <p class="privacy">🔒 照片只在你的瀏覽器中處理，不會上傳</p>
@@ -17,7 +19,9 @@
 
   <section class="workspace">
     <div id="emptyState"><div class="empty-art">⌑</div><h1>把文件照片變成乾淨掃描檔</h1><p>加入一張或多張照片，系統會自動找出紙張邊緣。</p><button class="primary" id="emptyAdd">選取照片</button></div>
+    <div id="galleryState" hidden><div class="empty-art">✓</div><h1>掃描預覽已完成</h1><p>點選左側或下方的預覽圖，才會開啟四角與影像編輯。</p></div>
     <div id="editor" hidden>
+      <div class="file-toolbar"><button id="closeEditor" class="mobile-only" type="button">← 預覽</button><h2 id="pageFileName">掃描頁</h2><button id="renamePage" type="button" title="修改檔名" aria-label="修改檔名">✎</button></div>
       <div class="editor-toolbar"><div><button id="rotateLeft" title="向左旋轉">↶</button><button id="rotateRight" title="向右旋轉">↷</button><button id="autoDetect">✦ 重新偵測</button></div><span id="detectBadge"></span></div>
       <div class="canvas-grid"><div class="canvas-card"><span class="caption">調整四角</span><div id="canvasWrap"><canvas id="sourceCanvas"></canvas><canvas id="overlayCanvas"></canvas></div><p>拖曳透明控制環；可點按環內或附近區域</p></div><div class="canvas-card"><span class="caption">即時預覽</span><div class="preview-wrap"><canvas id="previewCanvas"></canvas></div><p id="previewInfo">—</p></div></div>
     </div>
@@ -33,11 +37,18 @@
     <hr><h3>匯出</h3>
     <label>PDF 檔名<input id="pdfName" value="掃描文件" maxlength="80"></label>
     <label>輸出解析度<select id="dpi"><option>150</option><option selected>300</option><option>600</option></select></label>
-    <button id="downloadJpg" class="secondary" disabled>下載此頁 JPG</button><button id="exportPdf" class="primary" disabled>匯出多頁 PDF</button>
+    <button id="downloadJpg" class="secondary" disabled>下載此頁 JPG</button><button id="exportPdf" class="primary" disabled>匯出 PDF（選擇位置）</button>
   </aside>
 </main>
 <footer>離線優先 · 無帳號 · 無上傳</footer>
+<dialog id="cameraDialog" class="camera-dialog">
+  <div class="camera-head"><b>連續拍攝</b><button id="closeCamera" type="button" aria-label="關閉相機">×</button></div>
+  <video id="cameraVideo" autoplay playsinline muted></video>
+  <canvas id="cameraCanvas" hidden></canvas>
+  <p id="captureCount">已拍攝 0 頁</p>
+  <div class="camera-actions"><button id="cameraDone" class="secondary" type="button">完成</button><button id="cameraShutter" class="shutter" type="button" aria-label="拍攝"></button></div>
+</dialog>
 <script src="https://docs.opencv.org/4.x/opencv.js" async></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
-<script type="module" src="app.js?v=3"></script>
+<script type="module" src="app.js?v=4"></script>
 </body></html>
