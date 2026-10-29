@@ -1,6 +1,6 @@
 const INVALID_FILE_CHARS = /[\\/:*?"<>|\u0000-\u001f]/g;
 
-export function sanitizeFileName(value, fallback = '掃描頁.jpg') {
+export function sanitizeFileName(value, fallback = 'pagina.jpg') {
   const cleaned = String(value ?? '')
     .trim()
     .replace(INVALID_FILE_CHARS, '_')
@@ -11,7 +11,7 @@ export function sanitizeFileName(value, fallback = '掃描頁.jpg') {
 
 export function createCaptureFileName(sequence) {
   const number = Math.max(1, Number(sequence) || 1);
-  return `掃描頁_${String(number).padStart(3, '0')}.jpg`;
+  return `pagina_${String(number).padStart(3, '0')}.jpg`;
 }
 
 export function shouldOpenEditorAfterImport({ mobile, explicitEdit = false }) {
@@ -54,7 +54,7 @@ export async function writeBlobToFileHandle(handle, blob) {
     try {
       await writable.abort?.();
     } catch (_) {
-      // 保留原始寫入／關閉錯誤，避免中止失敗遮蔽真正原因。
+      // Conservar el error original de escritura/cierre
     }
     throw error;
   }

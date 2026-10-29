@@ -52,7 +52,7 @@ function contoursToCandidates(mask, edge, method, width, height, candidates) {
 }
 
 export function detectDocument(sourceCanvas) {
-  if(!cvReady()) throw new Error('OpenCV.js 尚未載入完成');
+  if(!cvReady()) throw new Error('OpenCV.js aún no se ha cargado');
   const owned=[];
   try {
     const original=cv.imread(sourceCanvas); owned.push(original);
@@ -123,7 +123,7 @@ export function detectDocument(sourceCanvas) {
 }
 
 export function warpToCanvas(sourceCanvas,corners,maxDimension=5000) {
-  if(!cvReady()) throw new Error('OpenCV.js 尚未載入完成');
+  if(!cvReady()) throw new Error('OpenCV.js aún no se ha cargado');
   const mats=[];
   try {
     const src=cv.imread(sourceCanvas); mats.push(src);

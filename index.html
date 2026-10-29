@@ -1,54 +1,54 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="es">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="所有影像都在瀏覽器本機處理的智慧文件掃描器">
-  <title>頁淨・智慧文件掃描器</title><link rel="stylesheet" href="styles.css?v=4">
+  <meta name="description" content="Escáner inteligente de documentos procesado 100% en el navegador">
+  <title>DocScan・Escáner Inteligente de Documentos</title><link rel="stylesheet" href="styles.css?v=5">
 </head>
 <body>
-<header><div><span class="brand-mark">▱</span><b>頁淨</b><small>智慧文件掃描器</small></div><div id="cvStatus" class="status waiting"><i></i> OpenCV 載入中</div></header>
+<header><div><span class="brand-mark">▱</span><b>DocScan</b><small>Escáner Inteligente</small></div><div id="cvStatus" class="status waiting"><i></i> Cargando OpenCV...</div></header>
 <main>
   <aside class="pages-panel">
-    <div class="panel-title"><div><b>頁面</b><span id="pageCount">0 頁</span></div><label class="icon-btn" title="加入照片">＋<input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden></label></div>
-    <button id="continuousCapture" class="camera-btn" type="button">📷 連續拍攝</button>
+    <div class="panel-title"><div><b>Páginas</b><span id="pageCount">0 pág.</span></div><label class="icon-btn" title="Añadir fotos">＋<input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden></label></div>
+    <button id="continuousCapture" class="camera-btn" type="button">📷 Captura continua</button>
     <input id="cameraFallback" type="file" accept="image/*" capture="environment" hidden>
-    <section id="dropZone" class="drop-zone"><span>⇧</span><b>拖放照片到這裡</b><small>或點擊選取 JPG、PNG、WebP</small></section>
-    <ol id="pageList" aria-label="掃描頁面"></ol>
-    <p class="privacy">🔒 照片只在你的瀏覽器中處理，不會上傳</p>
+    <section id="dropZone" class="drop-zone"><span>⇧</span><b>Arrastra fotos aquí</b><small>o haz clic para seleccionar JPG, PNG o WebP</small></section>
+    <ol id="pageList" aria-label="Páginas escaneadas"></ol>
+    <p class="privacy">🔒 Las fotos se procesan en tu navegador, no se suben a ningún servidor</p>
   </aside>
 
   <section class="workspace">
-    <div id="emptyState"><div class="empty-art">⌑</div><h1>把文件照片變成乾淨掃描檔</h1><p>加入一張或多張照片，系統會自動找出紙張邊緣。</p><button class="primary" id="emptyAdd">選取照片</button></div>
-    <div id="galleryState" hidden><div class="empty-art">✓</div><h1>掃描預覽已完成</h1><p>點選左側或下方的預覽圖，才會開啟四角與影像編輯。</p></div>
+    <div id="emptyState"><div class="empty-art">⌑</div><h1>Convierte fotos de documentos en escaneos limpios</h1><p>Añade una o más fotos, el sistema detectará automáticamente los bordes del documento.</p><button class="primary" id="emptyAdd">Seleccionar fotos</button></div>
+    <div id="galleryState" hidden><div class="empty-art">✓</div><h1>Vista previa completada</h1><p>Haz clic en una miniatura para abrir la edición de esquinas e imagen.</p></div>
     <div id="editor" hidden>
-      <div class="file-toolbar"><button id="closeEditor" class="mobile-only" type="button">← 預覽</button><h2 id="pageFileName">掃描頁</h2><button id="renamePage" type="button" title="修改檔名" aria-label="修改檔名">✎</button></div>
-      <div class="editor-toolbar"><div><button id="rotateLeft" title="向左旋轉">↶</button><button id="rotateRight" title="向右旋轉">↷</button><button id="autoDetect">✦ 重新偵測</button></div><span id="detectBadge"></span></div>
-      <div class="canvas-grid"><div class="canvas-card"><span class="caption">調整四角</span><div id="canvasWrap"><canvas id="sourceCanvas"></canvas><canvas id="overlayCanvas"></canvas></div><p>拖曳透明控制環；可點按環內或附近區域</p></div><div class="canvas-card"><span class="caption">即時預覽</span><div class="preview-wrap"><canvas id="previewCanvas"></canvas></div><p id="previewInfo">—</p></div></div>
+      <div class="file-toolbar"><button id="closeEditor" class="mobile-only" type="button">← Volver</button><h2 id="pageFileName">Página escaneada</h2><button id="renamePage" type="button" title="Cambiar nombre" aria-label="Cambiar nombre">✎</button></div>
+      <div class="editor-toolbar"><div><button id="rotateLeft" title="Girar a la izquierda">↶</button><button id="rotateRight" title="Girar a la derecha">↷</button><button id="autoDetect">✦ Redetectar</button></div><span id="detectBadge"></span></div>
+      <div class="canvas-grid"><div class="canvas-card"><span class="caption">Ajustar esquinas</span><div id="canvasWrap"><canvas id="sourceCanvas"></canvas><canvas id="overlayCanvas"></canvas></div><p>Arrastra los círculos de control para ajustar los bordes</p></div><div class="canvas-card"><span class="caption">Vista previa</span><div class="preview-wrap"><canvas id="previewCanvas"></canvas></div><p id="previewInfo">—</p></div></div>
     </div>
-    <div id="busy" hidden><span class="spinner"></span><b>處理中…</b></div>
+    <div id="busy" hidden><span class="spinner"></span><b>Procesando…</b></div>
     <div id="errorBox" hidden role="alert"></div>
   </section>
 
   <aside class="settings-panel">
-    <div class="panel-title"><b>影像調整</b><button id="resetSettings">重設</button></div>
-    <label>輸出模式<select id="mode"><option value="color">彩色</option><option value="gray">灰階</option><option value="document">文件黑白</option></select></label>
+    <div class="panel-title"><b>Ajustes de imagen</b><button id="resetSettings">Restablecer</button></div>
+    <label>Modo de color<select id="mode"><option value="color">Color</option><option value="gray">Escala de grises</option><option value="document">Blanco y negro</option></select></label>
     <div id="sliders"></div>
-    <label class="check"><input id="whiten" type="checkbox" checked><span>白紙去灰</span></label>
-    <hr><h3>匯出</h3>
-    <label>PDF 檔名<input id="pdfName" value="掃描文件" maxlength="80"></label>
-    <label>輸出解析度<select id="dpi"><option>150</option><option selected>300</option><option>600</option></select></label>
-    <button id="downloadJpg" class="secondary" disabled>下載此頁 JPG</button><button id="exportPdf" class="primary" disabled>匯出 PDF（選擇位置）</button>
+    <label class="check"><input id="whiten" type="checkbox" checked><span>Blanquear fondo</span></label>
+    <hr><h3>Exportar</h3>
+    <label>Nombre del PDF<input id="pdfName" value="Documento_Escaneado" maxlength="80"></label>
+    <label>Resolución (DPI)<select id="dpi"><option>150</option><option selected>300</option><option>600</option></select></label>
+    <button id="downloadJpg" class="secondary" disabled>Descargar página en JPG</button><button id="exportPdf" class="primary" disabled>Exportar PDF (Guardar)</button>
   </aside>
 </main>
-<footer>離線優先 · 無帳號 · 無上傳</footer>
+<footer>100% Local · Sin cuenta · Sin subida de datos</footer>
 <dialog id="cameraDialog" class="camera-dialog">
-  <div class="camera-head"><b>連續拍攝</b><button id="closeCamera" type="button" aria-label="關閉相機">×</button></div>
+  <div class="camera-head"><b>Captura continua</b><button id="closeCamera" type="button" aria-label="Cerrar cámara">×</button></div>
   <video id="cameraVideo" autoplay playsinline muted></video>
   <canvas id="cameraCanvas" hidden></canvas>
-  <p id="captureCount">已拍攝 0 頁</p>
-  <div class="camera-actions"><button id="cameraDone" class="secondary" type="button">完成</button><button id="cameraShutter" class="shutter" type="button" aria-label="拍攝"></button></div>
+  <p id="captureCount">0 fotos tomadas</p>
+  <div class="camera-actions"><button id="cameraDone" class="secondary" type="button">Listo</button><button id="cameraShutter" class="shutter" type="button" aria-label="Tomar foto"></button></div>
 </dialog>
 <script src="https://docs.opencv.org/4.x/opencv.js" async></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
-<script type="module" src="app.js?v=4"></script>
+<script type="module" src="app.js?v=5"></script>
 </body></html>

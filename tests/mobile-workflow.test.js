@@ -11,13 +11,13 @@ import {
 } from '../mobile-workflow.js';
 
 test('page rename keeps a useful extension while replacing Windows-invalid characters', () => {
-  assert.equal(sanitizeFileName('  客戶/報表:第一頁.jpg  ', '掃描頁.jpg'), '客戶_報表_第一頁.jpg');
-  assert.equal(sanitizeFileName('...  ', '掃描頁.jpg'), '掃描頁.jpg');
+  assert.equal(sanitizeFileName('  cliente/reporte:pagina1.jpg  ', 'pagina.jpg'), 'cliente_reporte_pagina1.jpg');
+  assert.equal(sanitizeFileName('...  ', 'pagina.jpg'), 'pagina.jpg');
 });
 
 test('continuous captures receive stable sequential JPEG names', () => {
-  assert.equal(createCaptureFileName(1), '掃描頁_001.jpg');
-  assert.equal(createCaptureFileName(27), '掃描頁_027.jpg');
+  assert.equal(createCaptureFileName(1), 'pagina_001.jpg');
+  assert.equal(createCaptureFileName(27), 'pagina_027.jpg');
 });
 
 test('mobile import stays in completed-preview mode until the user explicitly edits', () => {
